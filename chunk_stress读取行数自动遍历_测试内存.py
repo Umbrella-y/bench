@@ -1,13 +1,9 @@
-import imp
 import os
-import time
-from unittest.loader import VALID_MODULE_NAME 
 import pandas as pd
-import linecache
-import string
 import warnings
+from io import StringIO
 warnings.filterwarnings("ignore")#忽略所有的警告，继续执行，主要是为了屏蔽pd.append要换为pd.concat的警告
-filepath = r'F:\2022.6.24.5K30nm\stress/'#使用的临时文件的bash的路径
+filepath = r'E:\30nm实验数据汇总\2022.11.15.控温器测试\stress/'#使用的临时文件的bash的路径
 #filename = r'C:\Users\Administrator\Desktop\Bash\重新计算的30nm的应力数据的chunk输出\2022.5.9/stress300-1350.txt'#使用的输入文件的路径和名称
 name = 'stress300-300.txt'
 #filename = filepath + name
@@ -39,10 +35,11 @@ def chunk_stress(filepath,filename,kaishi,jieshu,timestep,chunkshumu,tixidaxiao,
     schunk_daxiao = tixidaxiao/chunkshumu
     volume_list = []
     for i in range(0,chunkshumu,1):
-        shangjie = (i+1)*schunk_daxiao
-        xiejie = (i)*schunk_daxiao
-        pi = 3.1415926
-        volume = 4*pi*(((shangjie)**3)-(xiejie**3))/3
+        #shangjie = (i+1)*schunk_daxiao
+        #xiejie = (i)*schunk_daxiao
+        #pi = 3.1415926
+        #volume = 4*pi*(((shangjie)**3)-(xiejie**3))/3
+        volume = 50*50*10
         volume_list.append(volume)#得到的是一个列表，每次把输出的volume值输入到列表的末尾
     volume_list_data = pd.DataFrame(data =volume_list)#把刚刚得到的列表转化为dataframe
     print(volume_list)
@@ -52,14 +49,15 @@ def chunk_stress(filepath,filename,kaishi,jieshu,timestep,chunkshumu,tixidaxiao,
     ##设置一个名为timedata的数据作为全局变量 
     time_data = globals()
     ##把命名为timedata【timestep1370000】…………的字典对应的dataframe的格式进行声明
-    for i in range(kaishi,jieshu,timestep):
+    for i in range(kaishi,jieshu+timestep,timestep):
         time_data['timestep'+str(i)] = pd.DataFrame(columns=['Chunk', 'Coord1','Ncount','c_peratom[1]', 'c_peratom[2]', 'c_peratom[3]'])
 
     #rawshuju = pd.read_table(filename,header=None)
 
     ##_________________________________________
     ##定义一个应力输出的数据库格式#修改chunk树木之后，这里也是需要组改变的一个地方————————————————————————不可忽略
-    yingli_shuchu =pd.DataFrame([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],columns=['chunk'])
+    yingli_shuchu =pd.DataFrame([1,2,3,4,5,6,7,8,9,10],columns=['chunk'])
+    #,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28
     #11,12,13,14,15,16,17,18,19,20
 
     print(yingli_shuchu)
@@ -67,18 +65,18 @@ def chunk_stress(filepath,filename,kaishi,jieshu,timestep,chunkshumu,tixidaxiao,
     ##__________________________________________
     ##打开文件stress.txt   
     with open(filename, 'r') as file:
-        for i in range(kaishi,jieshu,timestep):
+        for i in range(kaishi,jieshu+timestep,timestep):
             line = file.readline()#用于跳过每次读取数据时的文件头使用
             bashfile = open(filepath + '/'+ 'new' + '.txt','w')#创建一个bash文件，用于在存取数据时进行过渡
             bashfilename = filepath + '/'+ 'new' + '.txt'#该bash文件的路径和文件名需要定义以调用
             for t in range(0,chunkshumu,1):#跳过每次读取数据时的头一行后，循环十次，读取其中的内容
                 line = file.readline()
                 line = line[2:-1]#去除头两个字符和倒数第一个字符
-                fh = open(bashfilename, 'w')#打开bashfile并且把刚刚读到内存里的数据写出来到bash里面
-                fh.write(line)
-                fh.close()
+                #fh = open(bashfilename, 'w')#打开bashfile并且把刚刚读到内存里的数据写出来到bash里面
+                #fh.write(line)
+                #fh.close()
                 #这时定义一个对应着bashfile的临时的数据库，用于存取和过渡里面保存的信息，并按照其格式使用通配符进行匹配和读取
-                df = pd.read_table(bashfilename,sep='\s+',names=['Chunk', 'Coord1','Ncount','c_peratom[1]', 'c_peratom[2]', 'c_peratom[3]'])
+                df = pd.read_table(StringIO(line),sep='\s+',names=['Chunk', 'Coord1','Ncount','c_peratom[1]', 'c_peratom[2]', 'c_peratom[3]'])
                 #这时调用全局变量的数据库，并把刚刚存在临时的数据库中的信息，写到这个全局变量对应的字典里面去
                 time_data['timestep'+str(i)] = time_data['timestep'+str(i)].append(df)
                 #这时把timedata这个字典的数据转化成dataframe
@@ -116,11 +114,11 @@ files.sort()
 #files.sort(key = lambda x: float(x[10:-4]))#按照数字大小排序     
 
 #设置导入的文件的帧数和对应的step数，这里是从1370000开始然后到1410000结束吗、，中间每个数据的间隔是100step
-#kaishi = 100
+kaishi = 0
 #jieshu = 2000000
 timestep = 100
 #chunkshumu = 20
-tixidaxiao = 150
+tixidaxiao = 300
 
 # for file in files:
 #     filen = filepath + '/' +file

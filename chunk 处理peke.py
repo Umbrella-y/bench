@@ -1,13 +1,12 @@
-import imp
+
 import os
 import time
-from unittest.loader import VALID_MODULE_NAME 
+
 import pandas as pd
-import linecache
-import string
+from io import StringIO
 import warnings
 warnings.filterwarnings("ignore")#忽略所有的警告，继续执行，主要是为了屏蔽pd.append要换为pd.concat的警告
-filepath = r'F:\2022.6.24.5K30nm\stress/'#使用的临时文件的bash的路径
+filepath = r'E:\2022-2023-30nm实验数据汇总\2023-2-14-TG\恒温过程的能量变化\1/'#使用的临时文件的bash的路径
 #filename = r'C:\Users\Administrator\Desktop\Bash\重新计算的30nm的应力数据的chunk输出\2022.5.9/stress300-1350.txt'#使用的输入文件的路径和名称
 name = 'stress300-300.txt'
 #filename = filepath + name
@@ -53,16 +52,17 @@ def chunk_stress(filepath,filename,kaishi,jieshu,timestep,chunkshumu,tixidaxiao,
     time_data = globals()
     ##把命名为timedata【timestep1370000】…………的字典对应的dataframe的格式进行声明
     for i in range(kaishi,jieshu,timestep):
-        time_data['timestep'+str(i)] = pd.DataFrame(columns=['Chunk', 'Coord1','Ncount','c_peratom[1]', 'c_peratom[2]', 'c_peratom[3]'])
+        time_data['timestep'+str(i)] = pd.DataFrame(columns=['Chunk', 'Coord1','Ncount','peatom','keatom'])
 
     #rawshuju = pd.read_table(filename,header=None)
 
     ##_________________________________________
     ##定义一个应力输出的数据库格式#修改chunk树木之后，这里也是需要组改变的一个地方————————————————————————不可忽略
-    yingli_shuchu =pd.DataFrame([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],columns=['chunk'])
+    yingli_shuchu1 =pd.DataFrame([1,2,3,4,5,6,7,8,9,10],columns=['chunk'])
+    yingli_shuchu2 =pd.DataFrame([1,2,3,4,5,6,7,8,9,10],columns=['chunk'])
     #11,12,13,14,15,16,17,18,19,20
 
-    print(yingli_shuchu)
+    #print(yingli_shuchu)
 
     ##__________________________________________
     ##打开文件stress.txt   
@@ -77,39 +77,30 @@ def chunk_stress(filepath,filename,kaishi,jieshu,timestep,chunkshumu,tixidaxiao,
                 fh = open(bashfilename, 'w')#打开bashfile并且把刚刚读到内存里的数据写出来到bash里面
                 fh.write(line)
                 fh.close()
+                df= pd.read_table(bashfilename,sep='\s+',names=['Chunk', 'Coord1','Ncount','peatom','keatom'])
                 #这时定义一个对应着bashfile的临时的数据库，用于存取和过渡里面保存的信息，并按照其格式使用通配符进行匹配和读取
-                df = pd.read_table(bashfilename,sep='\s+',names=['Chunk', 'Coord1','Ncount','c_peratom[1]', 'c_peratom[2]', 'c_peratom[3]'])
                 #这时调用全局变量的数据库，并把刚刚存在临时的数据库中的信息，写到这个全局变量对应的字典里面去
                 time_data['timestep'+str(i)] = time_data['timestep'+str(i)].append(df)
                 #这时把timedata这个字典的数据转化成dataframe
                 time_data1 = pd.DataFrame(time_data['timestep'+str(i)])
-                #使用加法运算把三列数据加起来并保存在sumstress列
-                time_data1['sumstress'] = time_data1.apply(lambda x: add(x['c_peratom[1]'],x['c_peratom[2]'],x['c_peratom[3]']), axis=1)
-                #把合起来的值除以三并保存在substress列
-                time_data1['substress'] = time_data1.apply(lambda x: sub(x['sumstress'], 3), axis=1)
-            #新建一个名为volumelist1的空列，用于存储体积数据
-            time_data1['volume_list1'] = ''
-            #把之前创建的volumelist的列表写入到这里的timedata的dataframe的对应的volumelist1这一列中
-            time_data1['volume_list1'] = volume_list
-            #将算出来的除以三的应力再除以对应的体积列表中的体积
-            time_data1['fuyingli'] = time_data1.apply(lambda x: sub(x['substress'], x['volume_list1']), axis=1)
-            #进行正负反转的计算
-            time_data1['zhengyingli'] = time_data1.apply(lambda x: sub(x['fuyingli'], -1), axis=1)
-            #将所有原子的平均，乘以原子总数，得到整个体系的实际值
-            time_data1['zhenshiyingli'] = time_data1.apply(lambda x: mag(x['zhengyingli'], x['Ncount']), axis=1)
+            #print(time_data)
             #输出所有的timedata中的数据到csv文件中
             #time_data1.to_csv(filepath + '{}.csv'.format(i))
             #定义一系列列表，并把timedata1中的真实盈利导出为列表格式保存在其中
-            yingli_shuchu['{}'.format(i)] = time_data1['zhenshiyingli'].values.tolist()
-            #显示目前运行到的步骤
+            yingli_shuchu1['pe{}'.format(i)] = time_data1['peatom'].values.tolist()
+            yingli_shuchu2['ke{}'.format(i)] = time_data1['keatom'].values.tolist()
             print(i)
+            #显示目前运行到的步骤
         #输出所有的分块数据
-        yingli_shuchu.to_csv( filen +'.csv')
+        yingli_shuchu1.to_csv( filen +'c_peatom.csv')
+        yingli_shuchu2.to_csv( filen +'c_keatom.csv')
         #将得到的dataframe中的数据进行转置
-        yingli_zhuanzhi = pd.DataFrame(yingli_shuchu.values.T,index = yingli_shuchu.columns,columns=yingli_shuchu.index)
+        yingli_zhuanzhi1 = pd.DataFrame(yingli_shuchu1.values.T,index = yingli_shuchu1.columns,columns=yingli_shuchu1.index)
+        yingli_zhuanzhi2 = pd.DataFrame(yingli_shuchu2.values.T,index = yingli_shuchu2.columns,columns=yingli_shuchu2.index)
         #输出所有的转置后的分块数据
-        yingli_zhuanzhi.to_csv(filen +'转制'+'.csv')
-        print(yingli_shuchu)  
+        yingli_zhuanzhi1.to_csv(filen +'转制c_peatom'+'.csv')
+        yingli_zhuanzhi2.to_csv(filen +'转制c_keatom'+'.csv')
+        print(yingli_shuchu1)  
 
 files = os.listdir(filepath)
 files.sort()
@@ -120,11 +111,11 @@ files.sort()
 #jieshu = 2000000
 timestep = 100
 #chunkshumu = 20
-tixidaxiao = 150
+tixidaxiao = 300
 
-# for file in files:
-#     filen = filepath + '/' +file
-#     delete_filehead(filen, 3)
+for file in files:
+    filen = filepath + '/' +file
+    delete_filehead(filen, 3)
 for file in files:
     filen = filepath + '/' +file
     print(filen)

@@ -1,6 +1,3 @@
-from hashlib import new
-from pdb import line_prefix
-from tkinter.ttk import LabeledScale
 import pandas as pd
 import numpy as np
 import os
@@ -9,16 +6,15 @@ import matplotlib.pyplot as plt
 from time import sleep  
 from matplotlib.animation import FuncAnimation
 import imageio
-import shutil
 import re
 
-
-filesave = r'F:\2022.6.22.fendianchiyu\IKjieguo/' #输出表格
-tusave = r'F:\2022.6.22.fendianchiyu\IKjieguo/su/' #输出
-qusave = r'F:\2022.6.22.fendianchiyu\IKjieguo/qu/'#输出
-zosave = r'F:\2022.6.22.fendianchiyu\IKjieguo/zo/'#输出
-filename = r'F:\2022.6.22.fendianchiyu\IKshuju/'#文件输入
-zhuansave = r'F:\2022.6.22.fendianchiyu\IKjieguo/zhuan/'#输出
+shuchupath= r'E:\30nm实验数据汇总\2022.11.10.900K-1250Kstress\1500/'
+filesave = shuchupath + 'bash/' #输出表格
+tusave = shuchupath + 'su/' #输出
+qusave = shuchupath + 'qu/'#输出
+zosave = shuchupath + 'zo/'#输出
+filename = r'E:\30nm实验数据汇总\2022.11.10.900K-1250Kstress\1500\stress/'#文件输入
+zhuansave = shuchupath + 'zhuan/'#输出
 
     #获取到当前文件的目录，并检查是否有report文件夹，如果不存在则自动新建report文件
 def makefile(path):
@@ -29,6 +25,7 @@ makefile(tusave)
 makefile(qusave)
 makefile(zosave)
 makefile(filename)
+makefile(zhuansave)
 print(filename)
 
 def dantu(xi,lablehigh,xlo,xhi,path):
@@ -58,7 +55,7 @@ def zhuanzifu(str):
     return str
 
 #将列表中的数据按照列进行平均并输出
-def liepingjuncsv(df,savepath):
+def liepingjuncsv(df,savepath,name):
     lieshu = df.shape[1]
     lie = int(lieshu/10)
     print(lie)
@@ -69,9 +66,22 @@ def liepingjuncsv(df,savepath):
         pingjunx[i] = df.iloc[:,xiajie:shangjie].sum(axis=1)
         pingjunx[i] = pingjunx[i].div(10)
         pingjunx1 = '经过列平均'
-        pingjunx.to_csv(savepath + '{}.csv'.format(pingjunx1))
+        pingjunx.to_csv(savepath + name +'{}.csv'.format(pingjunx1))
     return pingjunx  
 
+def liepingjuncsvrr(df,savepath,name):
+    lieshu = df.shape[1]
+    lie = int(lieshu/10)
+    print(lie)
+    pingjunx = pd.DataFrame()
+    for i in range(0,lie,1):
+        xiajie = 10*i
+        shangjie = 10*(i+1)
+        pingjunx[i] = df.iloc[:,xiajie:shangjie].sum(axis=1)
+        pingjunx[i] = pingjunx[i].div(10)
+        pingjunx1 = '经过列平均rr'
+        pingjunx.to_csv(savepath + name +'{}.csv'.format(pingjunx1))
+    return pingjunx  
 
 def liepingjuncsv100ping(df,savepath):
     lieshu = df.shape[1]
@@ -114,7 +124,7 @@ qu = pd.DataFrame()#法向力数据
 #files = os.walk(filename)
 for file in files:
     files.sort()#初始化排序文件
-    files.sort(key = lambda x: float(x[26:]))#按照数字大小排序
+    files.sort(key = lambda x: float(x[16:]))#按照数字大小排序
 
     i = '123'
     name = str(file)
@@ -154,25 +164,39 @@ for i in range(0,13,1):
 pingjunname2 = 'pingjunname2'
 pingjun2.to_csv(filesave + '{}.csv'.format(pingjunname2))
 mingzi1 = 1
-su.to_csv(filesave + '{}.csv'.format(mingzi1))
+su.to_csv(filesave + 'RR.csv'.format(mingzi1))
 mingzi2 = 2
-qu.to_csv(filesave + '{}.csv'.format(mingzi2))
+qu.to_csv(filesave + 'PhiPhi.csv'.format(mingzi2))
 #__________________________________________________________________________________
 sulen = su.shape[1]
 qulen = qu.shape[1]
 
-lablehigh = 10
+lablehigh = 2.5
 xlo = 0
 xhi = 132
+
+
 su_zhuanzhi = pd.DataFrame(su.values.T,index = su.columns,columns=su.index)
 qu_zhuanzhi = pd.DataFrame(qu.values.T,index = qu.columns,columns=qu.index)
 #su_zhuanzhi = su_zhuanzhi.drop(index = 1,axis=1)
 del_file(zhuansave)
 #dantu(su_zhuanzhi,lablehigh,xlo,xhi,zhuansave)
 zhuanzhiname = '未经过平均的转制'
-su_zhuanzhi.to_csv(filesave + '{}.csv'.format(zhuanzhiname))
-qu_zhuanzhi.to_csv(filesave + '切向'+'{}.csv'.format(zhuanzhiname))
-qupingjunzhuanzhi = liepingjuncsv(qu_zhuanzhi,filesave)#得到平均后的转制矩阵
+su_zhuanzhi.to_csv(filesave + 'RR{}.csv'.format(zhuanzhiname))
+qu_zhuanzhi.to_csv(filesave + '切向'+'PP{}.csv'.format(zhuanzhiname))
+
+qupingjunzhuanzhi = liepingjuncsv(qu_zhuanzhi,filesave,'zz')#得到平均后的转制矩阵
+supingjunzhuanzhi = liepingjuncsvrr(su_zhuanzhi,filesave,'zz')
+
+nozhuanzhiname = '没有平均过没有转置'
+qupingjunnozhuanzhi = pd.DataFrame(qupingjunzhuanzhi.values.T,index = qupingjunzhuanzhi.columns,columns=qupingjunzhuanzhi.index)
+supingjunnozhuanzhi = pd.DataFrame(supingjunzhuanzhi.values.T,index = supingjunzhuanzhi.columns,columns=supingjunzhuanzhi.index)
+
+qupingjunnozz = qupingjunnozhuanzhi.to_csv(filesave +'nozhuanzhi'+ 'PP{}.csv'.format(nozhuanzhiname))
+supingjunnozz = supingjunnozhuanzhi.to_csv(filesave + 'nozhuanzhi'+'RR{}.csv'.format(nozhuanzhiname))
+# qupingjun1 = liepingjuncsv(qu,filesave,'nozz')#得到平均后的矩阵
+# supingjun2 = liepingjuncsvrr(su,filesave,'nozz')
+
 #pingjunzhuanzhi = liepingjuncsv(su_zhuanzhi,filesave)#得到平均后的转制矩阵
 #liepingjuncsv(qupingjunzhuanzhi,filesave)
 pingjunzhuanzhi100 = liepingjuncsv100ping(su_zhuanzhi,filesave)

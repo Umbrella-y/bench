@@ -13,9 +13,9 @@ import shutil
 import re
 from scipy.interpolate import splprep,splev
 from scipy.signal import savgol_filter
-filepath = r'E:\2022.分层熔化论文\30nmAL直接IK的数据处理动图/'
-filesave = r'E:\2022.分层熔化论文\30nmAL直接IK的数据处理动图/chutu/'
-pinghua_filepath = r'E:\2022.分层熔化论文\30nmAL直接IK的数据处理动图\平滑出图1/'
+filepath = r'E:\2022.8.1.ben温度场/'
+filesave = r'E:\2022.7.29.温度场\234/chutu/'
+pinghua_filepath = r'E:\2022.7.29.温度场\234\平滑出图1/'
 
 def del_file(filepath):
     print("hello")
@@ -42,8 +42,8 @@ def chutu(qu,filesave):
         plt.cla()
         x = qu.index
         y = qu.iloc[:,i]
-        plt.xlim(0, 1600)
-        plt.ylim(-3, 3)
+        plt.xlim(0, 20)
+        plt.ylim(-10, 2000)
         plt.plot(x,y)
         #plt.show()s
         plt.title('Step = '+'{}'.format(i))
@@ -67,8 +67,8 @@ def pinghuachutu(qu,filesave):
         x = spline3(qu.index, qu.iloc[:,i],15000,4)[0]
         y = spline3(qu.index, qu.iloc[:,i],15000,4)[1]
 
-        plt.xlim(0, 160)
-        plt.ylim(-10, 10)
+        plt.xlim(0, 20)
+        plt.ylim(-10, 2000)
         plt.plot(x,y)
         plt.title('Step = '+'{}'.format(i))
         plt.savefig(filesave +'{}.jpg'.format(i))########################平滑后的结果
@@ -114,7 +114,7 @@ def savitzky_Golay(qu,filesave):
     imageio.mimsave(filesave + '平滑动图.gif', images3,duration=0.015)
 
 ##___________________________________________________
-filetruename = '1.csv'
+filetruename = 'data-ke-pe-temp1200-1800.txt.csv'
 filename = filepath + filetruename
 df = pd.read_csv(filename)
 #df.drop(df.columns[0], axis=1, inplace=True)#去掉第一行用的
